@@ -1,3 +1,3 @@
-import demo from "./Demo";
+import demo from "./demo/index";
 
 window.demo = demo;
