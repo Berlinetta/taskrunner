@@ -1,11 +1,11 @@
 import _ from "lodash";
 import Promise from "bluebird";
 import {TaskTypes} from "../Models";
-import {InternalTaskBase} from "./InternalTaskBase";
+import InternalTaskBase from "./common/InternalTaskBase";
 
 class SequentialTask extends InternalTaskBase {
     constructor(store) {
-        super(_.uniqueId("sequential_task_"), store);
+        super(_.uniqueId("sequential_task_"), TaskTypes.Sequential, store);
     }
 
     updateNavigationFields(tasksCursor, internalTaskIds) {
@@ -47,6 +47,7 @@ class SequentialTask extends InternalTaskBase {
 
     initialize(newTasks) {
         const tasksCursor = this.store.select("tasks");
+        super.initialize(tasksCursor, newTasks);
         this.updateNavigationFields(tasksCursor, newTasks.map((t) => t.id));
         this.registerWorkflowEvents(this.store);
         this.registerStartEvent(this.store);

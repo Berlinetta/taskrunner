@@ -1,14 +1,14 @@
 import _ from "lodash";
 import Promise from "bluebird";
 import {TaskTypes} from "../Models";
-import {InternalTaskBase} from "./InternalTaskBase";
-import TaskExecutionService from "../Services/TaskExecutionService";
+import InternalTaskBase from "./common/InternalTaskBase";
+import TaskExecutionService from "../services/TaskExecutionService";
 
 const TES = new TaskExecutionService();
 
 class ComposeTask extends InternalTaskBase {
     constructor(store) {
-        super(_.uniqueId("compose_task_"), store);
+        super(_.uniqueId("compose_task_"), TaskTypes.Composed, store);
     }
 
     updateNavigationFields(tasksCursor, internalTaskIds) {
@@ -22,7 +22,7 @@ class ComposeTask extends InternalTaskBase {
 
     initialize(newTasks) {
         const tasksCursor = this.store.select("tasks");
-        this._registerInnerTask(this.store, newTasks, TaskTypes.Composed);
+        super.initialize(tasksCursor, newTasks);
         this.updateNavigationFields(tasksCursor, newTasks.map((t) => t.id));
         this.registerStartEvent(this.store);
         this.handleTaskComplete(this.store);

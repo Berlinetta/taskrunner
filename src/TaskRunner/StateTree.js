@@ -8,7 +8,7 @@ const EventType = {
 const BuiltinEvents = {
     update: "update",
     get: "get",
-    fetch: "fetch",
+    fetch: "fetch"
 };
 
 class CursorEvent {

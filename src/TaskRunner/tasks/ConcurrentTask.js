@@ -1,11 +1,11 @@
 import _ from "lodash";
 import Promise from "bluebird";
 import {TaskTypes} from "../Models";
-import {InternalTaskBase} from "./InternalTaskBase";
+import InternalTaskBase from "./common/InternalTaskBase";
 
 class ConcurrentTask extends InternalTaskBase {
     constructor(store) {
-        super(_.uniqueId("concurrent_task_"), store);
+        super(_.uniqueId("concurrent_task_"), TaskTypes.Concurrent, store);
     }
 
     updateNavigationFields(tasksCursor, internalTaskIds) {
@@ -28,10 +28,10 @@ class ConcurrentTask extends InternalTaskBase {
         });
     }
 
+    //todo: use internal store, don't pass args.
     initialize(newTasks) {
-        //todo: use internal store, don't pass args.
         const tasksCursor = this.store.select("tasks");
-        this._registerInnerTask(this.store, newTasks, TaskTypes.Concurrent);
+        super.initialize(tasksCursor, newTasks);
         this.updateNavigationFields(tasksCursor, newTasks.map((t) => t.id));
         this.registerWorkflowEvents(this.store);
         this.registerStartEvent(this.store);

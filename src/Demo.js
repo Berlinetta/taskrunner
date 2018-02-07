@@ -1,6 +1,6 @@
 import Promise from "bluebird";
 import TaskRunner from "./TaskRunner/TaskRunner";
-import {BaseTask} from "./TaskRunner/InternalTasks/InternalTaskBase";
+import BaseTask from "./TaskRunner/tasks/common/BaseTask";
 
 class DemoClassBase extends BaseTask {
     constructor(id, param) {
@@ -45,6 +45,7 @@ class A extends DemoClassBase {
     }
 
     execute(parameter, store) {
+        this.store = store;
         return Promise.resolve({name: this.name});
     }
 }

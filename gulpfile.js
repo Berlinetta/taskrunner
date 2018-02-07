@@ -41,9 +41,11 @@ gulp.task("lint", function () {
 });
 
 //clean and rebuild project.
-gulp.task("build", ["clean", "copy", "bundle"], function () {
+gulp.task("build", ["lint", "clean", "copy", "bundle"], function () {
     //do any other things needed.
 });
+
+gulp.task("noLintBuild", ["clean", "copy", "bundle"]);
 
 //default operation.
 gulp.task("default", ["build"]);

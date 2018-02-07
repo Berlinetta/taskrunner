@@ -1,8 +1,10 @@
 import StateTree from "./StateTree";
-import TaskCreationService from "./Services/TaskCreationService";
-import TaskExecutionService from "./Services/TaskExecutionService";
+import TaskExecutionService from "./services/TaskExecutionService";
+import ConcurrentTask from "./tasks/ConcurrentTask";
+import SequentialTask from "./tasks/SequentialTask";
+import ComposeTask from "./tasks/ComposeTask";
+import NormalTask from "./tasks/NormalTask";
 
-const TCS = new TaskCreationService();
 const TES = new TaskExecutionService();
 
 class TaskRunner {
@@ -14,23 +16,29 @@ class TaskRunner {
     }
 
     register(...newTasks) {
-        TCS.createNormalTasks(newTasks, this.store.select("tasks"));
+        newTasks.forEach((task) => {
+            const instance = new NormalTask(this.store);
+            instance.initialize(task);
+        });
     }
 
     concurrent(...newTasks) {
-        TCS.createNewConcurrentTask(newTasks, this.store.select("tasks"));
+        const instance = new ConcurrentTask(this.store);
+        instance.initialize(newTasks);
     }
 
     sequential(...newTasks) {
-        TCS.createNewSequentialTask(newTasks, this.store.select("tasks"));
+        const instance = new SequentialTask(this.store);
+        instance.initialize(newTasks);
     }
 
     compose(...newTasks) {
-        return TCS.createNewComposeTask(newTasks, this.store.select("tasks"));
+        const instance = new ComposeTask(this.store);
+        instance.initialize(newTasks);
     }
 
     run() {
-        TCS.updateGlobalDependencies(this.store);
+        TES.updateGlobalDependencies(this.store);
         const initTaskIds = TES.getInitialTaskIds(this.store.select("tasks"));
         TES.runTasks(initTaskIds, this.store);
         return TES.getTaskRunnerPromise(this.store);

@@ -1,34 +1,48 @@
 import _ from "lodash";
 import Promise from "bluebird";
-import TaskExecutionService from "../Services/TaskExecutionService";
-import Utils from "../Utils";
-import {TaskStatus} from "../Models";
+import TaskExecutionService from "../../services/TaskExecutionService";
+import TaskUtils from "./TaskUtils";
+import BaseTask from "./BaseTask";
+import {TaskStatus} from "../../Models";
 
-const utils = new Utils();
+const TU = new TaskUtils();
 const TES = new TaskExecutionService();
 
-class BaseTask {
-    constructor(id, param) {
-        this.id = id;
-        this.param = param;
-        this.handlers = [];
-    }
-
-    on(eventType, callback) {
-        //todo: add dup check?
-        this.handlers.push({event: eventType, handler: callback});
-    }
-
-    execute() {
-    }
-}
-
 class InternalTaskBase extends BaseTask {
-    constructor(id, store) {
+    constructor(id, taskType, store) {
         super(id);
+        this.taskType = null;
         this.store = store;
-        this.handleSuccessResults = utils.handleSuccessResults.bind(this);
-        this.handleErrorResults = utils.handleErrorResults.bind(this);
+        this.handleSuccessResults = TU.handleSuccessResults.bind(this);
+        this.handleErrorResults = TU.handleErrorResults.bind(this);
+    }
+
+    _triggerTaskEvent(taskCursor, eventType) {
+        const handlers = taskCursor.select("eventHandlers").get();
+        const taskHandlers = _.isArray(handlers) ? handlers : {};
+        const handlerObj = taskHandlers.find((e) => e.event === eventType);
+        if (handlerObj && _.isFunction(handlerObj.handler)) {
+            //todo: param?
+            handlerObj.handler();
+        }
+    }
+
+    _registerUserTaskEvents(taskCursor) {
+        taskCursor.select("start").on("update", (e) => {
+            if (e && e.data) {
+                this._triggerTaskEvent(taskCursor, "start");
+            }
+        });
+        taskCursor.select("complete").on("update", (e) => {
+            if (e && e.data) {
+                this._triggerTaskEvent(taskCursor, "complete");
+            }
+        });
+        taskCursor.select("error").on("update", (e) => {
+            if (e && e.data) {
+                this._triggerTaskEvent(taskCursor, "error");
+            }
+        });
     }
 
     assertTaskExists(tasks, taskId) {
@@ -95,6 +109,11 @@ class InternalTaskBase extends BaseTask {
             }
         });
     }
+
+    initialize(tasksCursor, newTasks) {
+        tasksCursor.select(this.id).set(new TaskStatus(this.id, null, this.taskType, newTasks, [], this.execute, this));
+        this._registerUserTaskEvents(tasksCursor.select(this.id));
+    }
 }
 
-export {BaseTask, InternalTaskBase};
+export default InternalTaskBase;

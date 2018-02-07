@@ -1,9 +1,6 @@
 import _ from "lodash";
 import Promise from "bluebird";
 import {TaskTypes} from "../Models";
-import Utils from "../Utils";
-
-const utils = new Utils();
 
 class TaskExecutionService {
     constructor() {
@@ -26,17 +23,12 @@ class TaskExecutionService {
     runTask(taskId, store) {
         const taskCursor = store.select("tasks", taskId);
         taskCursor.select("start").set(true);
-        const taskPromise = this._getExecutionPromise(taskCursor);
-        //no need handler for internal tasks.
-        if (taskCursor.select("taskType").get() === TaskTypes.Normal) {
-            taskPromise.then(_.partial(utils.handleSuccessResults, taskCursor))
-                .catch(_.partial(utils.handleErrorResults, taskCursor));
-        }
+        return this._getExecutionPromise(taskCursor);
     }
 
     runTasks(taskIds, store) {
-        taskIds.forEach((taskId) => {
-            this.runTask(taskId, store);
+        return taskIds.map((taskId) => {
+            return this.runTask(taskId, store);
         });
     }
 
@@ -97,6 +89,29 @@ class TaskExecutionService {
                 && _.isEmpty(taskCursor.select("previousSequentialTaskId").get());
         });
         return filteredTasks.map((t) => t.id);
+    }
+
+    updateGlobalDependencies(store) {
+        const tasksCursor = store.select("tasks");
+        const tasks = tasksCursor.get();
+        const builtinTasks = _.filter(tasks, (t) => t.taskType !== TaskTypes.Normal);
+        const composedTasks = _.filter(tasks, (t) => t.taskType === TaskTypes.Composed);
+        builtinTasks.forEach((builtinTask) => {
+            const innerTaskIds = builtinTask.innerTasks.map((t) => t.id);
+            composedTasks.forEach((composedTask) => {
+                if (builtinTask.id !== composedTask.id) {
+                    const composedTaskInnerTaskIds = composedTask.innerTasks.map((t) => t.id);
+                    let needToUpdate = true;
+                    innerTaskIds.forEach((innerId) => {
+                        needToUpdate = needToUpdate && _.includes(composedTaskInnerTaskIds, innerId);
+                    });
+                    if (needToUpdate) {
+                        builtinTask.parentComposedTaskId = composedTask.id;
+                        composedTask.innerTasks.push(builtinTask);
+                    }
+                }
+            });
+        });
     }
 }
 
