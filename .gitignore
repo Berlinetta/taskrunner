@@ -57,3 +57,9 @@ typings/
 # dotenv environment variables file
 .env
 
+.idea
+.build
+.vscode
+.history
+lib/
+build/
