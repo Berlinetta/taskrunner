@@ -28,7 +28,7 @@ class DemoClassBase extends BaseTask {
     }
 
     handleTaskComplete() {
-        console.log(`${this.name} completed`);
+        console.log(`User task log: ${this.name} completed!`);
     }
 
     execute() {

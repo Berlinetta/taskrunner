@@ -16,7 +16,7 @@ export default () => {
     const MI = new M("MM");
 
     TR.register(AI, BI, CI, DI, EI, HI, OI, JI, LI, MI);
-    TR.sequential(HI, OI, JI, LI, MI, AI, BI, CI, DI, EI);
+    TR.concurrent(LI, MI, AI, BI, CI, HI, OI, JI, DI, EI);
 
     TR.run().then((result) => {
         console.log("final!" + result);

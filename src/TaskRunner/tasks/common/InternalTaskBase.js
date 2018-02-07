@@ -14,27 +14,6 @@ class InternalTaskBase extends BaseTask {
         this.handleErrorResults = TU.handleErrorResults.bind(this);
     }
 
-    _triggerTaskEvent(eventType) {
-        const handlers = TS.getTaskCursorById(this.id).select("eventHandlers").get();
-        const taskHandlers = _.isArray(handlers) ? handlers : {};
-        const handlerObj = taskHandlers.find((e) => e.event === eventType);
-        if (handlerObj && _.isFunction(handlerObj.handler)) {
-            //todo: param?
-            handlerObj.handler();
-        }
-    }
-
-    _registerUserTaskEvents() {
-        const events = ["start", "complete", "error"];
-        events.forEach((eventType) => {
-            TS.getTaskCursorById(this.id).select(eventType).on("update", (e) => {
-                if (e && e.data) {
-                    this._triggerTaskEvent(eventType);
-                }
-            });
-        });
-    }
-
     assertTaskExists(taskId) {
         if (!_.isObject(TS.getTasks()[taskId])) {
             throw new Error(`Task ${taskId} initialize failed.`);
@@ -100,7 +79,6 @@ class InternalTaskBase extends BaseTask {
     initialize(newTasks) {
         const status = new TaskStatus(this.id, null, this.taskType, newTasks, [], this.execute, this);
         TS.getTaskCursorById(this.id).set(status);
-        this._registerUserTaskEvents();
     }
 }
 

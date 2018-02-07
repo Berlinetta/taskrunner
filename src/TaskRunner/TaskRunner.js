@@ -13,6 +13,8 @@ class TaskRunner {
             tasks: {}
         });
         TS.initialize(this.store);
+        //todo: debug.
+        window.store = this.store;
     }
 
     register(...newTasks) {
@@ -35,6 +37,7 @@ class TaskRunner {
     compose(...newTasks) {
         const instance = new ComposeTask();
         instance.initialize(newTasks);
+        return instance;
     }
 
     run() {

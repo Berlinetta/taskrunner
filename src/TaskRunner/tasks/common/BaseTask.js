@@ -10,6 +10,10 @@ class BaseTask {
         this.handlers.push({event: eventType, handler: callback});
     }
 
+    off() {
+        //todo: off events.
+    }
+
     initialize() {
 
     }

@@ -36,6 +36,10 @@ class TaskExecutionService {
     _getTaskRunnerPromise() {
         //todo: remove count.
         this.count++;
+        console.log(this.count);
+        if (this.count === 100) {
+            return Promise.resolve();
+        }
         const promises = _.values(TS.getTasks()).map((t) => t.promise);
         const emptyPromises = _.filter(promises, (p) => _.isEmpty(p));
         if (emptyPromises.length === 0) {
@@ -63,7 +67,7 @@ class TaskExecutionService {
     getInitialTaskIds() {
         const filteredTasks = _.filter(TS.getTasks(), (task) => {
             if (task.taskType === TaskTypes.Concurrent && _.isEmpty(task.previousSequentialTaskId)
-                && !_.some(task.innerTasks, (innerTask) => {
+                && _.some(task.innerTasks, (innerTask) => {
                     return !_.isEmpty(TS.getTaskCursorById(innerTask.id).select("previousSequentialTaskId").get());
                 })) {
                 return false;
