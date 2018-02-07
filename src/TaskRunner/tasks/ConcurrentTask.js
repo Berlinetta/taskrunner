@@ -2,44 +2,39 @@ import _ from "lodash";
 import Promise from "bluebird";
 import {TaskTypes} from "../Models";
 import InternalTaskBase from "./common/InternalTaskBase";
+import TS from "../services/TreeService";
 
 class ConcurrentTask extends InternalTaskBase {
-    constructor(store) {
-        super(_.uniqueId("concurrent_task_"), TaskTypes.Concurrent, store);
+    constructor() {
+        super(_.uniqueId("concurrent_task_"), TaskTypes.Concurrent);
     }
 
-    updateNavigationFields(tasksCursor, internalTaskIds) {
-        const tasks = tasksCursor.get();
+    updateNavigationFields(internalTaskIds) {
         internalTaskIds.forEach((taskId) => {
-            this.assertTaskExists(tasks, taskId);
-            tasks[taskId].parentConcurrentTaskId = this.id;
+            this.assertTaskExists(taskId);
+            TS.getTaskCursorById(taskId).select("parentConcurrentTaskId").set(this.id);
         });
-        tasksCursor.set(tasks);
     }
 
-    registerWorkflowEvents(store) {
-        const taskCursor = store.select("tasks", this.id);
-        taskCursor.select("start").on("update", (e) => {
+    registerWorkflowEvents() {
+        TS.getTaskCursorById(this.id).select("start").on("update", (e) => {
             if (e.data === true) {
-                taskCursor.select("innerTasks").get().forEach((task) => {
+                TS.getTaskCursorById(this.id).select("innerTasks").get().forEach((task) => {
                     this.setStartFlag(task.id);
                 });
             }
         });
     }
 
-    //todo: use internal store, don't pass args.
     initialize(newTasks) {
-        const tasksCursor = this.store.select("tasks");
-        super.initialize(tasksCursor, newTasks);
-        this.updateNavigationFields(tasksCursor, newTasks.map((t) => t.id));
-        this.registerWorkflowEvents(this.store);
-        this.registerStartEvent(this.store);
-        this.handleTaskComplete(this.store);
+        super.initialize(newTasks);
+        this.updateNavigationFields(newTasks.map((t) => t.id));
+        this.registerWorkflowEvents();
+        this.registerStartEvent();
+        this.handleTaskComplete();
     }
 
-    execute(param, store) {
-        this.store = store;
+    execute() {
         this.setStartFlag(this.id);
         return Promise.resolve();
     }

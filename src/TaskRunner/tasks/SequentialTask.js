@@ -2,30 +2,28 @@ import _ from "lodash";
 import Promise from "bluebird";
 import {TaskTypes} from "../Models";
 import InternalTaskBase from "./common/InternalTaskBase";
+import TS from "../services/TreeService";
 
 class SequentialTask extends InternalTaskBase {
-    constructor(store) {
-        super(_.uniqueId("sequential_task_"), TaskTypes.Sequential, store);
+    constructor() {
+        super(_.uniqueId("sequential_task_"), TaskTypes.Sequential);
     }
 
-    updateNavigationFields(tasksCursor, internalTaskIds) {
-        const tasks = tasksCursor.get();
-        internalTaskIds.forEach((id, i, arr) => {
-            this.assertTaskExists(tasks, id);
-            tasks[id].previousSequentialTaskId = i === 0 ? null : arr[i - 1];
+    updateNavigationFields(internalTaskIds) {
+        internalTaskIds.forEach((taskId, i, arr) => {
+            this.assertTaskExists(taskId);
+            TS.getTaskCursorById(taskId).select("previousSequentialTaskId").set(i === 0 ? null : arr[i - 1]);
         });
-        tasksCursor.set(tasks);
     }
 
-    registerWorkflowEvents(store) {
-        const tasksCursor = store.select("tasks");
-        const taskCursor = tasksCursor.select(this.id);
+    registerWorkflowEvents() {
+        const taskCursor = TS.getTaskCursorById(this.id);
         const innerTasksCursor = taskCursor.select("innerTasks");
         taskCursor.select("start").on("update", (e) => {
             if (e.data === true) {
                 const innerTaskIds = innerTasksCursor.get().map((t) => t.id);
                 if (innerTaskIds.length > 0) {
-                    this.assertTaskExists(tasksCursor.get(), innerTaskIds[0]);
+                    this.assertTaskExists(innerTaskIds[0]);
                     this.setStartFlag(innerTaskIds[0]);
                 }
             }
@@ -34,7 +32,7 @@ class SequentialTask extends InternalTaskBase {
             const innerTaskCursor = taskCursor.tree.select("tasks", innerTaskId);
             const prevTaskId = innerTaskCursor.select("previousSequentialTaskId").get();
             if (!_.isEmpty(prevTaskId)) {
-                tasksCursor.select(prevTaskId, "complete").on("update", (e) => {
+                TS.getTasksCursor().select(prevTaskId, "complete").on("update", (e) => {
                     if (e.data === true) {
                         //todo: remove logs.
                         console.log(`Prev task ${prevTaskId} completed, now starting ${innerTaskId}`);
@@ -46,16 +44,14 @@ class SequentialTask extends InternalTaskBase {
     }
 
     initialize(newTasks) {
-        const tasksCursor = this.store.select("tasks");
-        super.initialize(tasksCursor, newTasks);
-        this.updateNavigationFields(tasksCursor, newTasks.map((t) => t.id));
-        this.registerWorkflowEvents(this.store);
-        this.registerStartEvent(this.store);
-        this.handleTaskComplete(this.store);
+        super.initialize(newTasks);
+        this.updateNavigationFields(newTasks.map((t) => t.id));
+        this.registerWorkflowEvents();
+        this.registerStartEvent();
+        this.handleTaskComplete();
     }
 
-    execute(param, store) {
-        this.store = store;
+    execute() {
         this.setStartFlag(this.id);
         return Promise.resolve();
     }

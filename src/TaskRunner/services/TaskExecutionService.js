@@ -1,6 +1,7 @@
 import _ from "lodash";
 import Promise from "bluebird";
 import {TaskTypes} from "../Models";
+import TS from "./TreeService";
 
 class TaskExecutionService {
     constructor() {
@@ -8,52 +9,49 @@ class TaskExecutionService {
         this.count = 0;
     }
 
-    _getExecutionPromise(taskCursor) {
+    _getExecutionPromise(taskId) {
+        const taskCursor = TS.getTaskCursorById(taskId);
         const promiseCursor = taskCursor.select("promise");
         let exec = taskCursor.select("execute").get();
         exec = exec.bind(taskCursor.select("instance").get());
         let promise = promiseCursor.get();
         if (_.isNil(promise)) {
-            promise = exec(taskCursor.select("param").get(), taskCursor.tree);
+            promise = exec(taskCursor.select("param").get());
             promiseCursor.set(promise);
         }
         return promise;
     }
 
-    runTask(taskId, store) {
-        const taskCursor = store.select("tasks", taskId);
-        taskCursor.select("start").set(true);
-        return this._getExecutionPromise(taskCursor);
+    runTask(taskId) {
+        TS.getTaskCursorById(taskId).select("start").set(true);
+        return this._getExecutionPromise(taskId);
     }
 
-    runTasks(taskIds, store) {
+    runTasks(taskIds) {
         return taskIds.map((taskId) => {
-            return this.runTask(taskId, store);
+            return this.runTask(taskId);
         });
     }
 
-    _getTasks(store) {
-        return _.values(store.select("tasks").get());
-    }
-
-    _getTaskRunnerPromise(store) {
+    _getTaskRunnerPromise() {
+        //todo: remove count.
         this.count++;
-        const promises = this._getTasks(store).map((t) => t.promise);
+        const promises = _.values(TS.getTasks()).map((t) => t.promise);
         const emptyPromises = _.filter(promises, (p) => _.isEmpty(p));
         if (emptyPromises.length === 0) {
             return Promise.all(promises);
         } else {
             return Promise.all(promises).then(() => {
-                return this._getTaskRunnerPromise(store);
+                return this._getTaskRunnerPromise();
             });
         }
     }
 
-    getTaskRunnerPromise(store) {
-        return this._getTaskRunnerPromise(store).then((results) => {
+    getTaskRunnerPromise() {
+        return this._getTaskRunnerPromise().then((results) => {
             console.log("_getTaskRunnerPromise count:" + this.count);
             const taskResults = [];
-            this._getTasks(store).forEach((t, i) => {
+            _.values(TS.getTasks()).forEach((t, i) => {
                 if (t.taskType === TaskTypes.Normal) {
                     taskResults.push(results[i]);
                 }
@@ -62,17 +60,16 @@ class TaskExecutionService {
         });
     }
 
-    getInitialTaskIds(tasksCursor) {
-        const tasks = tasksCursor.get();
-        const filteredTasks = _.filter(tasks, (task) => {
+    getInitialTaskIds() {
+        const filteredTasks = _.filter(TS.getTasks(), (task) => {
             if (task.taskType === TaskTypes.Concurrent && _.isEmpty(task.previousSequentialTaskId)
                 && !_.some(task.innerTasks, (innerTask) => {
-                    return !_.isEmpty(tasksCursor.select(innerTask.id, "previousSequentialTaskId").get());
+                    return !_.isEmpty(TS.getTaskCursorById(innerTask.id).select("previousSequentialTaskId").get());
                 })) {
                 return false;
             }
             if (task.taskType === TaskTypes.Sequential && task.innerTasks.length > 0
-                && !_.isEmpty(tasksCursor.select(task.innerTasks[0].id, "parentConcurrentTaskId").get())) {
+                && !_.isEmpty(TS.getTaskCursorById(task.innerTasks[0].id).select("parentConcurrentTaskId").get())) {
                 return false;
             }
             return _.isEmpty(task.parentComposedTaskId) && _.isEmpty(task.parentConcurrentTaskId)
@@ -81,19 +78,18 @@ class TaskExecutionService {
         return filteredTasks.map((t) => t.id);
     }
 
-    getInitialTaskIdsForComposedTask(composedTaskCursor) {
-        const innerTasks = composedTaskCursor.select("innerTasks").get();
+    getInitialTaskIdsForComposedTask(taskId) {
+        const innerTasks = TS.getTaskCursorById(taskId).select("innerTasks").get();
         const filteredTasks = _.filter(innerTasks, (task) => {
-            const taskCursor = composedTaskCursor.tree.select("tasks", task.id);
+            const taskCursor = TS.getTaskCursorById(task.id);
             return _.isEmpty(taskCursor.select("parentConcurrentTaskId").get())
                 && _.isEmpty(taskCursor.select("previousSequentialTaskId").get());
         });
         return filteredTasks.map((t) => t.id);
     }
 
-    updateGlobalDependencies(store) {
-        const tasksCursor = store.select("tasks");
-        const tasks = tasksCursor.get();
+    updateGlobalDependencies() {
+        const tasks = TS.getTasks();
         const builtinTasks = _.filter(tasks, (t) => t.taskType !== TaskTypes.Normal);
         const composedTasks = _.filter(tasks, (t) => t.taskType === TaskTypes.Composed);
         builtinTasks.forEach((builtinTask) => {

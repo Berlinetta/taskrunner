@@ -3,35 +3,32 @@ import Promise from "bluebird";
 import {TaskTypes} from "../Models";
 import InternalTaskBase from "./common/InternalTaskBase";
 import TaskExecutionService from "../services/TaskExecutionService";
+import TS from "../services/TreeService";
 
 const TES = new TaskExecutionService();
 
 class ComposeTask extends InternalTaskBase {
-    constructor(store) {
-        super(_.uniqueId("compose_task_"), TaskTypes.Composed, store);
+    constructor() {
+        super(_.uniqueId("compose_task_"), TaskTypes.Composed);
     }
 
-    updateNavigationFields(tasksCursor, internalTaskIds) {
-        const tasks = tasksCursor.get();
+    updateNavigationFields(internalTaskIds) {
         internalTaskIds.forEach((taskId) => {
-            this.assertTaskExists(tasks, taskId);
-            tasks[taskId].parentComposedTaskId = this.id;
+            this.assertTaskExists(taskId);
+            TS.getTaskCursorById(taskId).select("parentComposedTaskId").set(this.id);
         });
-        tasksCursor.set(tasks);
     }
 
     initialize(newTasks) {
-        const tasksCursor = this.store.select("tasks");
-        super.initialize(tasksCursor, newTasks);
-        this.updateNavigationFields(tasksCursor, newTasks.map((t) => t.id));
-        this.registerStartEvent(this.store);
-        this.handleTaskComplete(this.store);
+        super.initialize(newTasks);
+        this.updateNavigationFields(newTasks.map((t) => t.id));
+        this.registerStartEvent();
+        this.handleTaskComplete();
     }
 
-    execute(param, store) {
-        this.store = store;
-        const initTaskIds = TES.getInitialTaskIdsForComposedTask(store.select("tasks", this.id));
-        TES.runTasks(initTaskIds, store);
+    execute() {
+        const initTaskIds = TES.getInitialTaskIdsForComposedTask(this.id);
+        TES.runTasks(initTaskIds);
         this.setStartFlag(this.id);
         return Promise.resolve();
     }
