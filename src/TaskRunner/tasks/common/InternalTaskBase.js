@@ -4,21 +4,21 @@ import TaskExecutionService from "../../services/TaskExecutionService";
 import TaskUtils from "./TaskUtils";
 import BaseTask from "./BaseTask";
 import {TaskStatus} from "../../Models";
+import TS from "../../services/TreeService";
 
 const TU = new TaskUtils();
 const TES = new TaskExecutionService();
 
 class InternalTaskBase extends BaseTask {
-    constructor(id, taskType, store) {
+    constructor(id, taskType) {
         super(id);
-        this.taskType = null;
-        this.store = store;
+        this.taskType = taskType;
         this.handleSuccessResults = TU.handleSuccessResults.bind(this);
         this.handleErrorResults = TU.handleErrorResults.bind(this);
     }
 
-    _triggerTaskEvent(taskCursor, eventType) {
-        const handlers = taskCursor.select("eventHandlers").get();
+    _triggerTaskEvent(eventType) {
+        const handlers = TS.getTaskCursorById(this.id).select("eventHandlers").get();
         const taskHandlers = _.isArray(handlers) ? handlers : {};
         const handlerObj = taskHandlers.find((e) => e.event === eventType);
         if (handlerObj && _.isFunction(handlerObj.handler)) {
@@ -27,58 +27,49 @@ class InternalTaskBase extends BaseTask {
         }
     }
 
-    _registerUserTaskEvents(taskCursor) {
-        taskCursor.select("start").on("update", (e) => {
-            if (e && e.data) {
-                this._triggerTaskEvent(taskCursor, "start");
-            }
-        });
-        taskCursor.select("complete").on("update", (e) => {
-            if (e && e.data) {
-                this._triggerTaskEvent(taskCursor, "complete");
-            }
-        });
-        taskCursor.select("error").on("update", (e) => {
-            if (e && e.data) {
-                this._triggerTaskEvent(taskCursor, "error");
-            }
+    _registerUserTaskEvents() {
+        const events = ["start", "complete", "error"];
+        events.forEach((eventType) => {
+            TS.getTaskCursorById(this.id).select(eventType).on("update", (e) => {
+                if (e && e.data) {
+                    this._triggerTaskEvent(eventType);
+                }
+            });
         });
     }
 
-    assertTaskExists(tasks, taskId) {
-        if (!_.isObject(tasks[taskId])) {
+    assertTaskExists(taskId) {
+        if (!_.isObject(TS.getTasks()[taskId])) {
             throw new Error(`Task ${taskId} initialize failed.`);
         }
     }
 
     setStartFlag(taskId) {
-        const startCursor = this.store.select("tasks", taskId, "start");
+        const startCursor = TS.getTaskCursorById(taskId).select("start");
         if (!startCursor.get()) {
             startCursor.set(true);
         }
     }
 
-    registerStartEvent(store) {
-        const tasksCursor = store.select("tasks");
-        const taskCursor = tasksCursor.select(this.id);
-        const internalTaskIds = taskCursor.select("innerTasks").get().map((t) => t.id);
+    registerStartEvent() {
+        const internalTaskIds = TS.getTaskCursorById(this.id).select("innerTasks").get().map((t) => t.id);
         internalTaskIds.forEach((id) => {
-            tasksCursor.select(id, "start").on("update", (e) => {
+            TS.getTasksCursor().select(id, "start").on("update", (e) => {
                 if (e.data === true) {
-                    TES.runTask(id, store);
-                    const parentConcurrentTaskId = store.select("tasks", id, "parentConcurrentTaskId").get();
+                    TES.runTask(id);
+                    const parentConcurrentTaskId = TS.getTaskCursorById(id).select("parentConcurrentTaskId").get();
                     if (!_.isEmpty(parentConcurrentTaskId)) {
-                        TES.runTask(parentConcurrentTaskId, store);
+                        TES.runTask(parentConcurrentTaskId);
                     }
                 }
             });
         });
     }
 
-    handleTaskComplete(store) {
-        const taskCursor = store.select("tasks", this.id);
+    handleTaskComplete() {
+        const taskCursor = TS.getTaskCursorById(this.id);
         const internalTaskIds = taskCursor.select("innerTasks").get().map((t) => t.id);
-        const innerTaskCompleteCursors = internalTaskIds.map((id) => store.select("tasks", id, "complete"));
+        const innerTaskCompleteCursors = internalTaskIds.map((id) => TS.getTaskCursorById(id).select("complete"));
         taskCursor.select("complete").computed(innerTaskCompleteCursors, (...results) => {
             return _.reduce(results, (re, complete) => {
                 return _.isBoolean(complete) ? re && complete : false;
@@ -89,9 +80,8 @@ class InternalTaskBase extends BaseTask {
                 const innerTaskPromises = [];
                 let error = false;
                 let errorMessages = [];
-                const tree = taskCursor.tree;
                 taskCursor.select("innerTasks").get().forEach((task) => {
-                    const innerTaskCursor = tree.select("tasks", task.id);
+                    const innerTaskCursor = TS.getTaskCursorById(task.id);
                     error = error || innerTaskCursor.select("error").get();
                     errorMessages = errorMessages.concat(innerTaskCursor.select("errorMessages").get());
                     innerTaskPromises.push(innerTaskCursor.select("promise").get());
@@ -99,9 +89,9 @@ class InternalTaskBase extends BaseTask {
                 const taskPromise = Promise.all(innerTaskPromises);
                 taskCursor.select("promise").set(taskPromise);
                 if (error) {
-                    this.handleErrorResults(taskCursor, errorMessages);
+                    this.handleErrorResults(this.id, errorMessages);
                 } else {
-                    this.handleSuccessResults(taskCursor, null);
+                    this.handleSuccessResults(this.id, null);
                 }
                 taskPromise.then((result) => {
                     taskCursor.select("result").set(result);
@@ -110,9 +100,10 @@ class InternalTaskBase extends BaseTask {
         });
     }
 
-    initialize(tasksCursor, newTasks) {
-        tasksCursor.select(this.id).set(new TaskStatus(this.id, null, this.taskType, newTasks, [], this.execute, this));
-        this._registerUserTaskEvents(tasksCursor.select(this.id));
+    initialize(newTasks) {
+        const status = new TaskStatus(this.id, null, this.taskType, newTasks, [], this.execute, this);
+        TS.getTaskCursorById(this.id).set(status);
+        this._registerUserTaskEvents();
     }
 }
 

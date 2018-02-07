@@ -2,14 +2,14 @@ import _ from "lodash";
 import BaseTask from "./common/BaseTask";
 import {TaskStatus, TaskTypes} from "../Models";
 import TaskUtils from "./common/TaskUtils";
+import TS from "../services/TreeService";
 
 const TU = new TaskUtils();
 
 class NormalTask extends BaseTask {
-    constructor(store) {
+    constructor() {
         super();
         this.taskType = TaskTypes.Normal;
-        this.store = store;
     }
 
     initialize(tasksCursor, userTask) {
@@ -24,15 +24,13 @@ class NormalTask extends BaseTask {
             }
         });
         const status = new TaskStatus(id, param, TaskTypes.Normal, [], handlers, this.execute, userTask);
-        this.store.select("tasks", id).set(status);
+        TS.getTaskCursorById(id).set(status);
     }
 
-    //todo: don't pass store to normal task.
-    execute(param, store) {
-        const taskCursor = store.select("tasks", this.id);
-        return this.userTaskExec(param, store)
-            .then(_.partial(TU.handleSuccessResults, taskCursor))
-            .catch(_.partial(TU.handleErrorResults, taskCursor));
+    execute() {
+        return this.userTaskExec(this.param)
+            .then(_.partial(TU.handleSuccessResults, this.id))
+            .catch(_.partial(TU.handleErrorResults, this.id));
     }
 }
 

@@ -1,4 +1,5 @@
 import StateTree from "./StateTree";
+import TS from "./services/TreeService";
 import TaskExecutionService from "./services/TaskExecutionService";
 import ConcurrentTask from "./tasks/ConcurrentTask";
 import SequentialTask from "./tasks/SequentialTask";
@@ -13,35 +14,36 @@ class TaskRunner {
             handlers: [],
             tasks: {}
         });
+        TS.initialize(this.store);
     }
 
     register(...newTasks) {
         newTasks.forEach((task) => {
-            const instance = new NormalTask(this.store);
+            const instance = new NormalTask();
             instance.initialize(task);
         });
     }
 
     concurrent(...newTasks) {
-        const instance = new ConcurrentTask(this.store);
+        const instance = new ConcurrentTask();
         instance.initialize(newTasks);
     }
 
     sequential(...newTasks) {
-        const instance = new SequentialTask(this.store);
+        const instance = new SequentialTask();
         instance.initialize(newTasks);
     }
 
     compose(...newTasks) {
-        const instance = new ComposeTask(this.store);
+        const instance = new ComposeTask();
         instance.initialize(newTasks);
     }
 
     run() {
-        TES.updateGlobalDependencies(this.store);
-        const initTaskIds = TES.getInitialTaskIds(this.store.select("tasks"));
-        TES.runTasks(initTaskIds, this.store);
-        return TES.getTaskRunnerPromise(this.store);
+        TES.updateGlobalDependencies();
+        const initTaskIds = TES.getInitialTaskIds();
+        TES.runTasks(initTaskIds);
+        return TES.getTaskRunnerPromise();
     }
 }
 
