@@ -138,6 +138,7 @@ class Cursor {
                 }
             });
         }
+        return this;
     }
 
     select(...args) {
@@ -157,11 +158,13 @@ class Cursor {
             cursorEvents[customEventIndex].handler = handler;
         }
         CU.setCursorEvents(this.path, this.tree, cursorEvents);
+        return this;
     }
 
     off(eventName) {
         const cursorEvents = _.filter(CU.getCursorEvents(this.path, this.tree), (obj) => obj.eventName !== eventName);
         CU.setCursorEvents(this.path, this.tree, cursorEvents);
+        return this;
     }
 
     fetch() {
@@ -171,6 +174,7 @@ class Cursor {
                 this.set(newValue);
             }
         });
+        return this;
     }
 
     addCustomEvent(eventName, satisfier) {
@@ -179,6 +183,7 @@ class Cursor {
         const cursorEvents = CU.getCursorEvents(this.path, this.tree);
         cursorEvents.push(new CursorEvent(eventName, null, EventType.Custom, satisfier));
         CU.setCursorEvents(this.path, this.tree, cursorEvents);
+        return this;
     }
 
     computed(cursors, calculator) {
@@ -186,6 +191,7 @@ class Cursor {
         cursors.forEach((c) => {
             c.on("update", _.partial(CU.computeValue, this, paths, calculator));
         });
+        return this;
     }
 }
 
