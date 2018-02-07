@@ -10,9 +10,9 @@
   "mainInput": "main",
   "mainOutput": "main",
   "dependencies": {
+    "lodash": "4.13.1",
     "bluebird": "3.4.0",
-    "es5-shim": "^4.4.1",
-    "lodash": "latest"
+    "es5-shim": "^4.4.1"
   },
   "devDependencies": {
     "babel": "^6.3.13",

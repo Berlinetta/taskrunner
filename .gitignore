@@ -61,5 +61,7 @@ typings/
 .build
 .vscode
 .history
-lib/
-build/
+lib
+build
+package-lock.json
+.DS_Store
