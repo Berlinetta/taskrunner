@@ -1,11 +1,9 @@
 import _ from "lodash";
 import Promise from "bluebird";
-import {TaskTypes} from "../Models";
+import {TaskTypes} from "../common/Constants";
 import InternalTaskBase from "./common/InternalTaskBase";
-import TaskExecutionService from "../services/TaskExecutionService";
+import TES from "../services/TaskExecutionService";
 import TS from "../services/TreeService";
-
-const TES = new TaskExecutionService();
 
 class ComposeTask extends InternalTaskBase {
     constructor() {

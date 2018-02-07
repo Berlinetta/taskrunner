@@ -1,10 +1,3 @@
-const TaskTypes = {
-    Normal: "Normal",
-    Concurrent: "Concurrent",
-    Sequential: "Sequential",
-    Composed: "Composed"
-};
-
 class TaskStatus {
     constructor(id, param, taskType, innerTasks, eventHandlers, execute, instance) {
         this.id = id;
@@ -26,4 +19,4 @@ class TaskStatus {
     }
 }
 
-export {TaskTypes, TaskStatus};
+export default TaskStatus;

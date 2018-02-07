@@ -19,4 +19,6 @@ class TaskUtils {
     }
 }
 
-export default TaskUtils;
+const instance = new TaskUtils();
+
+export default instance;

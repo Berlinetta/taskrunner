@@ -1,6 +1,6 @@
 import _ from "lodash";
 import Promise from "bluebird";
-import {TaskTypes} from "../Models";
+import {TaskTypes} from "../common/Constants";
 import TS from "./TreeService";
 
 class TaskExecutionService {
@@ -111,4 +111,6 @@ class TaskExecutionService {
     }
 }
 
-export default TaskExecutionService;
+const instance = new TaskExecutionService();
+
+export default instance;

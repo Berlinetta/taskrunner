@@ -1,10 +1,9 @@
 import _ from "lodash";
 import BaseTask from "./common/BaseTask";
-import {TaskStatus, TaskTypes} from "../Models";
-import TaskUtils from "./common/TaskUtils";
+import TaskStatus from "./common/TaskStatus";
+import {TaskTypes} from "../common/Constants";
+import TU from "./common/TaskUtils";
 import TS from "../services/TreeService";
-
-const TU = new TaskUtils();
 
 class NormalTask extends BaseTask {
     constructor() {

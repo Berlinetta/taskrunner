@@ -1,13 +1,10 @@
 import _ from "lodash";
 import Promise from "bluebird";
-import TaskExecutionService from "../../services/TaskExecutionService";
-import TaskUtils from "./TaskUtils";
 import BaseTask from "./BaseTask";
-import {TaskStatus} from "../../Models";
+import TaskStatus from "./TaskStatus";
+import TES from "../../services/TaskExecutionService";
+import TU from "./TaskUtils";
 import TS from "../../services/TreeService";
-
-const TU = new TaskUtils();
-const TES = new TaskExecutionService();
 
 class InternalTaskBase extends BaseTask {
     constructor(id, taskType) {

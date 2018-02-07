@@ -1,12 +1,10 @@
-import StateTree from "./StateTree";
-import TS from "./services/TreeService";
-import TaskExecutionService from "./services/TaskExecutionService";
+import StateTree from "./common/StateTree";
 import ConcurrentTask from "./tasks/ConcurrentTask";
 import SequentialTask from "./tasks/SequentialTask";
 import ComposeTask from "./tasks/ComposeTask";
 import NormalTask from "./tasks/NormalTask";
-
-const TES = new TaskExecutionService();
+import TS from "./services/TreeService";
+import TES from "./services/TaskExecutionService";
 
 class TaskRunner {
     constructor() {

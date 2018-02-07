@@ -1,6 +1,6 @@
 import _ from "lodash";
 import Promise from "bluebird";
-import {TaskTypes} from "../Models";
+import {TaskTypes} from "../common/Constants";
 import InternalTaskBase from "./common/InternalTaskBase";
 import TS from "../services/TreeService";
 
