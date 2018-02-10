@@ -1,7 +1,8 @@
 class BaseTask {
-    constructor(id, param) {
+    constructor(id, param = null, isInitialTask = false) {
         this.id = id;
         this.param = param;
+        this.isInitialTask = isInitialTask;
         this.handlers = [];
     }
 

@@ -17,6 +17,13 @@ class TaskUtils {
         taskCursor.select("error").set(true);
         return Promise.resolve(err);
     }
+
+    setStartFlag(taskId, isStart = true) {
+        const startCursor = TS.getTaskCursorById(taskId).select("start");
+        if (!startCursor.get()) {
+            startCursor.set(isStart);
+        }
+    }
 }
 
 const instance = new TaskUtils();

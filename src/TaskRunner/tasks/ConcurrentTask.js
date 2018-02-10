@@ -30,7 +30,6 @@ class ConcurrentTask extends InternalTaskBase {
         super.initialize(newTasks);
         this.updateNavigationFields(newTasks.map((t) => t.id));
         this.registerWorkflowEvents();
-        this.registerStartEvent();
         this.handleTaskComplete();
     }
 

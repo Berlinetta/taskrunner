@@ -5,7 +5,7 @@ export default () => {
     const TR = new TaskRunner();
 
     const AI = new A("AA", {info: "this is param"});
-    const BI = new B("BB");
+    const BI = new B("BB", null, true);
     const CI = new C("CC");
     const DI = new D("DD");
     const EI = new E("EE");

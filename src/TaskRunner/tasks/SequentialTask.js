@@ -12,7 +12,9 @@ class SequentialTask extends InternalTaskBase {
     updateNavigationFields(internalTaskIds) {
         internalTaskIds.forEach((taskId, i, arr) => {
             this.assertTaskExists(taskId);
-            TS.getTaskCursorById(taskId).select("previousSequentialTaskId").set(i === 0 ? null : arr[i - 1]);
+            const taskCursor = TS.getTaskCursorById(taskId);
+            taskCursor.select("previousSequentialTaskId").set(i === 0 ? null : arr[i - 1]);
+            taskCursor.select("parentSequentialTaskId").set(this.id);
         });
     }
 
@@ -47,7 +49,6 @@ class SequentialTask extends InternalTaskBase {
         super.initialize(newTasks);
         this.updateNavigationFields(newTasks.map((t) => t.id));
         this.registerWorkflowEvents();
-        this.registerStartEvent();
         this.handleTaskComplete();
     }
 

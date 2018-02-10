@@ -1,3 +1,6 @@
+import _ from "lodash";
+import {TaskTypes} from "../common/Constants";
+
 class TreeService {
     initialize(store) {
         this.store = store;
@@ -12,7 +15,15 @@ class TreeService {
     }
 
     getTasks() {
-        return this.getTasksCursor().get();
+        return _.values(this.getTasksCursor().get());
+    }
+
+    getNormalTasks() {
+        return _.filter(_.values(this.getTasksCursor().get()), (t) => t.taskType === TaskTypes.Normal);
+    }
+
+    getBuiltinTasks() {
+        return _.filter(_.values(this.getTasksCursor().get()), (t) => t.taskType !== TaskTypes.Normal);
     }
 
     getTaskCursorById(taskId) {

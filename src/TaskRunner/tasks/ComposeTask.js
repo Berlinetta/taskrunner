@@ -20,7 +20,6 @@ class ComposeTask extends InternalTaskBase {
     initialize(newTasks) {
         super.initialize(newTasks);
         this.updateNavigationFields(newTasks.map((t) => t.id));
-        this.registerStartEvent();
         this.handleTaskComplete();
     }
 

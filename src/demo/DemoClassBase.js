@@ -2,8 +2,8 @@ import Promise from "bluebird";
 import BaseTask from "../TaskRunner/tasks/common/BaseTask";
 
 class DemoClassBase extends BaseTask {
-    constructor(id, param) {
-        super(id, param);
+    constructor(id, param, isInitialTask = false) {
+        super(id, param, isInitialTask);
         this.on("start", this.handleTaskStart);
         this.on("complete", this.handleTaskComplete);
         this.on("error", this.handleTaskComplete);
