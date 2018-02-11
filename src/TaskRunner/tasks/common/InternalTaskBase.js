@@ -19,11 +19,7 @@ class InternalTaskBase extends BaseTask {
         }
     }
 
-    setStartFlag(taskId) {
-        TU.setStartFlag(taskId);
-    }
-
-    handleTaskComplete() {
+    _registerComplete() {
         const taskCursor = TS.getTaskCursorById(this.id);
         const internalTaskIds = taskCursor.select("innerTasks").get().map((t) => t.id);
         const innerTaskCompleteCursors = internalTaskIds.map((id) => TS.getTaskCursorById(id).select("complete"));

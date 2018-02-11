@@ -19,6 +19,6 @@ export default () => {
     TR.concurrent(LI, MI, AI, BI, CI, HI, OI, JI, DI, EI);
 
     TR.run().then((result) => {
-        console.log("final!" + result);
+        console.log("Demo5 final!" + result);
     });
 };

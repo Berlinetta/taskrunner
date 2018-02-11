@@ -133,7 +133,7 @@ class Cursor {
         if (updated) {
             CU.getCursorEvents(this.path, this.tree).forEach((obj) => {
                 if (obj.eventName === BuiltinEvents.update || (obj.eventType === EventType.Custom &&
-                    _.isFunction(obj.satisfier) && obj.satisfier(newValue))) {
+                        _.isFunction(obj.satisfier) && obj.satisfier(newValue))) {
                     obj.handler(new EventArgs(newValue, this, this.path));
                 }
             });

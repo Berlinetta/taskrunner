@@ -18,6 +18,26 @@ class TreeService {
         return _.values(this.getTasksCursor().get());
     }
 
+    getTaskIds() {
+        return this.getTasks().map((t) => t.id);
+    }
+
+    getTaskPropertyCursor(taskId, ...paths) {
+        return this.getTaskCursorById(taskId).select(...paths);
+    }
+
+    getTaskPropertyValue(taskId, ...paths) {
+        return this.getTaskPropertyCursor(taskId, ...paths).get();
+    }
+
+    setTaskProperty(taskId, propertyValue, ...paths) {
+        this.getTaskPropertyCursor(taskId, ...paths).set(propertyValue);
+    }
+
+    setTaskStart(taskId, isStart = true) {
+        this.setTaskProperty(taskId, isStart, "start");
+    }
+
     getNormalTasks() {
         return _.filter(_.values(this.getTasksCursor().get()), (t) => t.taskType === TaskTypes.Normal);
     }

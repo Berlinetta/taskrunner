@@ -19,6 +19,6 @@ export default () => {
     TR.sequential(HI, OI, JI, LI, MI, AI, BI, CI, DI, EI);
 
     TR.run().then((result) => {
-        console.log("final!" + result);
+        console.log("Demo4 final!" + result);
     });
 };

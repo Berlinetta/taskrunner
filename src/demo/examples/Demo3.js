@@ -23,5 +23,7 @@ export default () => {
     TR.sequential(BI, DI);
     TR.concurrent(DI, EI, HI);
     TR.sequential(TR.compose(CI, EI, HI), OI);
-    TR.run();
+    TR.run().then((result) => {
+        console.log("Demo3 final!" + result);
+    });
 };

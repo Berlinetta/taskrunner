@@ -18,6 +18,7 @@ class TaskStatus {
         this.error = false;
         this.errorMessages = [];
         this.start = false;
+        this.running = false;
     }
 }
 

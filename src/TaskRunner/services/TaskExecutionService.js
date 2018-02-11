@@ -2,7 +2,6 @@ import _ from "lodash";
 import Promise from "bluebird";
 import {TaskTypes} from "../common/Constants";
 import TS from "./TreeService";
-import TU from "../tasks/common/TaskUtils";
 
 class TaskExecutionService {
     constructor() {
@@ -17,23 +16,19 @@ class TaskExecutionService {
         exec = exec.bind(taskCursor.select("instance").get());
         let promise = promiseCursor.get();
         if (_.isNil(promise)) {
-            promise = exec(taskCursor.select("param").get());
+            promise = exec();
+            TS.setTaskProperty(taskId, true, "running");
             promiseCursor.set(promise);
         }
-        return promise;
-    }
-
-    runTask(taskId) {
-        TU.setStartFlag(taskId);
-        this._runExecute(taskId);
     }
 
     runTasks(taskIds) {
         if (taskIds.length === 0) {
+            //todo: reformat error handling.
             throw new Error("Error: No task ids found when running tasks.");
         }
         taskIds.forEach((taskId) => {
-            this.runTask(taskId);
+            TS.setTaskStart(taskId);
         });
     }
 
@@ -58,7 +53,12 @@ class TaskExecutionService {
     getTaskRunnerPromise() {
         return this._getTaskRunnerPromise().then((results) => {
             console.log("_getTaskRunnerPromise count:" + this.count);
-            return TS.getNormalTasks().map((t, i) => results[i]);
+            return TS.getNormalTasks().map((t, i) => {
+                if (_.isArray(results) && results.length > i) {
+                    return results[i];
+                }
+                return null;
+            });
         });
     }
 
@@ -67,7 +67,7 @@ class TaskExecutionService {
     }
 
     getInitialTaskIdsForComposedTask(taskId) {
-        const innerTasks = TS.getTaskCursorById(taskId).select("innerTasks").get();
+        const innerTasks = TS.getTaskPropertyCursor(taskId, "innerTasks").get();
         const filteredTasks = _.filter(innerTasks, (task) => {
             const taskCursor = TS.getTaskCursorById(task.id);
             return _.isEmpty(taskCursor.select("parentConcurrentTaskId").get())
@@ -97,9 +97,9 @@ class TaskExecutionService {
         });
     }
 
-    addStartCheck() {
-        TS.getTasks().map((t) => t.id).forEach((id) => {
-            TS.getTaskCursorById(id).select("start").on("update", (e) => {
+    registerStart() {
+        TS.getTaskIds().forEach((id) => {
+            TS.getTaskPropertyCursor(id, "start").on("update", (e) => {
                 if (e.data !== true) {
                     return;
                 }
@@ -107,20 +107,20 @@ class TaskExecutionService {
                 if (!_.isEmpty(currentTask.parentSequentialTaskId)) {
                     const parentSeqTask = TS.getTaskById(currentTask.parentSequentialTaskId);
                     if (!parentSeqTask.start) {
-                        TU.setStartFlag(parentSeqTask.id);
-                        TU.setStartFlag(id, false);
+                        TS.setTaskStart(id, false);
+                        TS.setTaskStart(parentSeqTask.id);
                         return;
                     }
                 }
                 if (!_.isEmpty(currentTask.parentConcurrentTaskId)) {
                     const parentConTask = TS.getTaskById(currentTask.parentConcurrentTaskId);
                     if (!parentConTask.start) {
-                        TU.setStartFlag(parentConTask.id);
-                        TU.setStartFlag(id, false);
+                        TS.setTaskStart(id, false);
+                        TS.setTaskStart(parentConTask.id);
                         return;
                     }
                 }
-                this.runTask(id);
+                this._runExecute(id);
             });
         });
     }

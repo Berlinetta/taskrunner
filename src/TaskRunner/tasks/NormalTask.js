@@ -1,4 +1,5 @@
 import _ from "lodash";
+import Promise from "bluebird";
 import BaseTask from "./common/BaseTask";
 import TaskStatus from "./common/TaskStatus";
 import {TaskTypes} from "../common/Constants";
@@ -22,11 +23,15 @@ class NormalTask extends BaseTask {
     }
 
     _registerUserTaskEvents() {
-        const events = ["start", "complete", "error"];
-        events.forEach((eventType) => {
-            TS.getTaskCursorById(this.id).select(eventType).on("update", (e) => {
+        const eventsMapping = {
+            running: "start",
+            complete: "complete",
+            error: "error"
+        };
+        _.keys(eventsMapping).forEach((key) => {
+            TS.getTaskCursorById(this.id).select(key).on("update", (e) => {
                 if (e && e.data) {
-                    this._triggerTaskEvent(eventType);
+                    this._triggerTaskEvent(eventsMapping[key]);
                 }
             });
         });
@@ -47,11 +52,19 @@ class NormalTask extends BaseTask {
     }
 
     execute() {
+        TS.setTaskStart(this.id);
         const normalValues = TS.getNormalTasks().map((t) => {
             return {id: t.id, promise: t.promise};
         });
-        return this.userTaskExec(this.param, normalValues)
-            .then(_.partial(TU.handleSuccessResults, this.id))
+        const userTaskPromise = this.userTaskExec(this.param, normalValues);
+        if (_.isEmpty(userTaskPromise)) {
+            return Promise.reject(new Error(`Error: execution promise of task:${this.id} is empty.`))
+                .catch(_.partial(TU.handleErrorResults, this.id));
+        }
+        if (!(userTaskPromise instanceof Promise)) {
+            return Promise.resolve(userTaskPromise).then(_.partial(TU.handleSuccessResults, this.id));
+        }
+        return userTaskPromise.then(_.partial(TU.handleSuccessResults, this.id))
             .catch(_.partial(TU.handleErrorResults, this.id));
     }
 }

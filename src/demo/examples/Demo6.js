@@ -19,6 +19,6 @@ export default () => {
     TR.compose(MI, LI, AI, OI, JI, DI, BI, CI, HI, EI);
 
     TR.run().then((result) => {
-        console.log("final!" + result);
+        console.log("Demo6 final!" + result);
     });
 };

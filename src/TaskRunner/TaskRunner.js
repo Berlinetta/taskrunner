@@ -42,7 +42,7 @@ class TaskRunner {
 
     run() {
         TES.updateGlobalDependencies();
-        TES.addStartCheck();
+        TES.registerStart();
         const initTaskIds = TES.getInitialTaskIds();
         TES.runTasks(initTaskIds);
         return TES.getTaskRunnerPromise();

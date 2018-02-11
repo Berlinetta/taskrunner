@@ -8,7 +8,7 @@ class A extends DemoClassBase {
 
     execute(parameter, tasks) {
         this.tasks = tasks;
-        return Promise.resolve({name: this.name});
+        return super.execute(parameter);
     }
 }
 
@@ -23,7 +23,7 @@ class B extends DemoClassBase {
 
     execute(parameter, tasks) {
         this.tasks = tasks;
-        return Promise.resolve({name: this.name});
+        return super.execute(parameter);
     }
 }
 
@@ -34,7 +34,7 @@ class C extends DemoClassBase {
 
     execute(parameter, tasks) {
         this.tasks = tasks;
-        return Promise.resolve({name: this.name});
+        return "ccccc";
     }
 }
 
@@ -49,7 +49,7 @@ class D extends DemoClassBase {
 
     execute(parameter, tasks) {
         this.tasks = tasks;
-        return Promise.resolve({name: this.name});
+        return super.execute(parameter);
     }
 }
 

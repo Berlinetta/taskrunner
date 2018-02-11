@@ -16,6 +16,6 @@ export default () => {
     TR.sequential(TR.compose(AI, BI, CI, DI), EI);
 
     TR.run().then((result) => {
-        console.log("final!" + result);
+        console.log("Demo1 final!" + result);
     });
 };

@@ -6,6 +6,7 @@ class TaskUtils {
     handleSuccessResults(taskId, result) {
         const taskCursor = TS.getTaskCursorById(taskId);
         taskCursor.select("result").set(result);
+        taskCursor.select("running").set(false);
         taskCursor.select("complete").set(true);
         return Promise.resolve(result);
     }
@@ -13,16 +14,10 @@ class TaskUtils {
     handleErrorResults(taskId, err) {
         const taskCursor = TS.getTaskCursorById(taskId);
         taskCursor.select("errorMessages").set(_.isArray(err) ? err : [err]);
+        taskCursor.select("running").set(false);
         taskCursor.select("complete").set(true);
         taskCursor.select("error").set(true);
         return Promise.resolve(err);
-    }
-
-    setStartFlag(taskId, isStart = true) {
-        const startCursor = TS.getTaskCursorById(taskId).select("start");
-        if (!startCursor.get()) {
-            startCursor.set(isStart);
-        }
     }
 }
 
