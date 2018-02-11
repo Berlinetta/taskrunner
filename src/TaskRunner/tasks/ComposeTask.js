@@ -10,7 +10,7 @@ class ComposeTask extends InternalTaskBase {
         super(_.uniqueId("compose_task_"), TaskTypes.Composed);
     }
 
-    updateNavigationFields(internalTaskIds) {
+    _setHooks(internalTaskIds) {
         internalTaskIds.forEach((taskId) => {
             this.assertTaskExists(taskId);
             TS.getTaskCursorById(taskId).select("parentComposedTaskId").set(this.id);
@@ -19,15 +19,14 @@ class ComposeTask extends InternalTaskBase {
 
     initialize(newTasks) {
         super.initialize(newTasks);
-        this.updateNavigationFields(newTasks.map((t) => t.id));
-        this.registerStartEvent();
-        this.handleTaskComplete();
+        this._setHooks(newTasks.map((t) => t.id));
+        this._registerComplete();
     }
 
     execute() {
         const initTaskIds = TES.getInitialTaskIdsForComposedTask(this.id);
         TES.runTasks(initTaskIds);
-        this.setStartFlag(this.id);
+        TS.setTaskStart(this.id);
         return Promise.resolve();
     }
 }

@@ -9,34 +9,46 @@ class SequentialTask extends InternalTaskBase {
         super(_.uniqueId("sequential_task_"), TaskTypes.Sequential);
     }
 
-    updateNavigationFields(internalTaskIds) {
+    _setHooks(internalTaskIds) {
         internalTaskIds.forEach((taskId, i, arr) => {
             this.assertTaskExists(taskId);
-            TS.getTaskCursorById(taskId).select("previousSequentialTaskId").set(i === 0 ? null : arr[i - 1]);
+            const taskCursor = TS.getTaskCursorById(taskId);
+            taskCursor.select("previousSequentialTaskId").set(i === 0 ? null : arr[i - 1]);
+            taskCursor.select("parentSequentialTaskId").set(this.id);
         });
     }
 
-    registerWorkflowEvents() {
+    _registerWorkflow() {
         const taskCursor = TS.getTaskCursorById(this.id);
         const innerTasksCursor = taskCursor.select("innerTasks");
         taskCursor.select("start").on("update", (e) => {
             if (e.data === true) {
                 const innerTaskIds = innerTasksCursor.get().map((t) => t.id);
                 if (innerTaskIds.length > 0) {
-                    this.assertTaskExists(innerTaskIds[0]);
-                    this.setStartFlag(innerTaskIds[0]);
+                    for (let i = 0; i < innerTaskIds.length; i++) {
+                        const innerTaskId = innerTaskIds[i];
+                        const isStart = TS.getTaskPropertyValue(innerTaskId, "start");
+                        const isComplete = TS.getTaskPropertyValue(innerTaskId, "complete");
+                        if (isComplete && !isStart) {
+                            TS.setTaskStart(innerTaskId);
+                            continue;
+                        }
+                        if (!isComplete && !isStart) {
+                            TS.setTaskStart(innerTaskId);
+                            break;
+                        }
+                    }
                 }
             }
         });
         innerTasksCursor.get().map((t) => t.id).forEach((innerTaskId) => {
-            const innerTaskCursor = taskCursor.tree.select("tasks", innerTaskId);
-            const prevTaskId = innerTaskCursor.select("previousSequentialTaskId").get();
+            const prevTaskId = TS.getTaskPropertyCursor(innerTaskId, "previousSequentialTaskId").get();
             if (!_.isEmpty(prevTaskId)) {
-                TS.getTasksCursor().select(prevTaskId, "complete").on("update", (e) => {
+                TS.getTaskPropertyCursor(prevTaskId, "complete").on("update", (e) => {
                     if (e.data === true) {
                         //todo: remove logs.
                         console.log(`Prev task ${prevTaskId} completed, now starting ${innerTaskId}`);
-                        this.setStartFlag(innerTaskId);
+                        TS.setTaskStart(innerTaskId);
                     }
                 });
             }
@@ -45,14 +57,13 @@ class SequentialTask extends InternalTaskBase {
 
     initialize(newTasks) {
         super.initialize(newTasks);
-        this.updateNavigationFields(newTasks.map((t) => t.id));
-        this.registerWorkflowEvents();
-        this.registerStartEvent();
-        this.handleTaskComplete();
+        this._setHooks(newTasks.map((t) => t.id));
+        this._registerWorkflow();
+        this._registerComplete();
     }
 
     execute() {
-        this.setStartFlag(this.id);
+        TS.setTaskStart(this.id);
         return Promise.resolve();
     }
 }

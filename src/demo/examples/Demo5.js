@@ -5,7 +5,7 @@ export default () => {
     const TR = new TaskRunner();
 
     const AI = new A("AA", {info: "this is param"});
-    const BI = new B("BB");
+    const BI = new B("BB", null, true);
     const CI = new C("CC");
     const DI = new D("DD");
     const EI = new E("EE");
@@ -19,6 +19,6 @@ export default () => {
     TR.concurrent(LI, MI, AI, BI, CI, HI, OI, JI, DI, EI);
 
     TR.run().then((result) => {
-        console.log("final!" + result);
+        console.log("Demo5 final!" + result);
     });
 };

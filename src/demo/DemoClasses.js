@@ -6,9 +6,9 @@ class A extends DemoClassBase {
         return "AAA";
     }
 
-    execute(parameter, store) {
-        this.store = store;
-        return Promise.resolve({name: this.name});
+    execute(parameter, tasks) {
+        this.tasks = tasks;
+        return super.execute(parameter);
     }
 }
 
@@ -20,11 +20,21 @@ class B extends DemoClassBase {
     getDelayTime() {
         return 3000;
     }
+
+    execute(parameter, tasks) {
+        this.tasks = tasks;
+        return super.execute(parameter);
+    }
 }
 
 class C extends DemoClassBase {
     getName() {
         return "CCC";
+    }
+
+    execute(parameter, tasks) {
+        this.tasks = tasks;
+        return "ccccc";
     }
 }
 
@@ -36,6 +46,11 @@ class D extends DemoClassBase {
     getDelayTime() {
         return 5000;
     }
+
+    execute(parameter, tasks) {
+        this.tasks = tasks;
+        return super.execute(parameter);
+    }
 }
 
 class E extends DemoClassBase {
@@ -45,6 +60,14 @@ class E extends DemoClassBase {
 
     getDelayTime() {
         return 2000;
+    }
+
+    execute(parameter, tasks) {
+        this.tasks = tasks;
+        return tasks[0].promise.then((data) => {
+            console.log(data);
+            return Promise.resolve({name: this.name});
+        });
     }
 }
 

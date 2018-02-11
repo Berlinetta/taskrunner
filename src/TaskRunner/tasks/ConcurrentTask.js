@@ -9,18 +9,18 @@ class ConcurrentTask extends InternalTaskBase {
         super(_.uniqueId("concurrent_task_"), TaskTypes.Concurrent);
     }
 
-    updateNavigationFields(internalTaskIds) {
+    _setHooks(internalTaskIds) {
         internalTaskIds.forEach((taskId) => {
             this.assertTaskExists(taskId);
             TS.getTaskCursorById(taskId).select("parentConcurrentTaskId").set(this.id);
         });
     }
 
-    registerWorkflowEvents() {
+    _registerWorkflow() {
         TS.getTaskCursorById(this.id).select("start").on("update", (e) => {
             if (e.data === true) {
                 TS.getTaskCursorById(this.id).select("innerTasks").get().forEach((task) => {
-                    this.setStartFlag(task.id);
+                    TS.setTaskStart(task.id);
                 });
             }
         });
@@ -28,14 +28,13 @@ class ConcurrentTask extends InternalTaskBase {
 
     initialize(newTasks) {
         super.initialize(newTasks);
-        this.updateNavigationFields(newTasks.map((t) => t.id));
-        this.registerWorkflowEvents();
-        this.registerStartEvent();
-        this.handleTaskComplete();
+        this._setHooks(newTasks.map((t) => t.id));
+        this._registerWorkflow();
+        this._registerComplete();
     }
 
     execute() {
-        this.setStartFlag(this.id);
+        TS.setTaskStart(this.id);
         return Promise.resolve();
     }
 }

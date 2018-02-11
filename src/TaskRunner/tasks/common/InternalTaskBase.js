@@ -2,7 +2,6 @@ import _ from "lodash";
 import Promise from "bluebird";
 import BaseTask from "./BaseTask";
 import TaskStatus from "./TaskStatus";
-import TES from "../../services/TaskExecutionService";
 import TU from "./TaskUtils";
 import TS from "../../services/TreeService";
 
@@ -15,34 +14,12 @@ class InternalTaskBase extends BaseTask {
     }
 
     assertTaskExists(taskId) {
-        if (!_.isObject(TS.getTasks()[taskId])) {
+        if (!_.isObject(TS.getTasksCursor().get()[taskId])) {
             throw new Error(`Task ${taskId} initialize failed.`);
         }
     }
 
-    setStartFlag(taskId) {
-        const startCursor = TS.getTaskCursorById(taskId).select("start");
-        if (!startCursor.get()) {
-            startCursor.set(true);
-        }
-    }
-
-    registerStartEvent() {
-        const internalTaskIds = TS.getTaskCursorById(this.id).select("innerTasks").get().map((t) => t.id);
-        internalTaskIds.forEach((id) => {
-            TS.getTasksCursor().select(id, "start").on("update", (e) => {
-                if (e.data === true) {
-                    TES.runTask(id);
-                    const parentConcurrentTaskId = TS.getTaskCursorById(id).select("parentConcurrentTaskId").get();
-                    if (!_.isEmpty(parentConcurrentTaskId)) {
-                        TES.runTask(parentConcurrentTaskId);
-                    }
-                }
-            });
-        });
-    }
-
-    handleTaskComplete() {
+    _registerComplete() {
         const taskCursor = TS.getTaskCursorById(this.id);
         const internalTaskIds = taskCursor.select("innerTasks").get().map((t) => t.id);
         const innerTaskCompleteCursors = internalTaskIds.map((id) => TS.getTaskCursorById(id).select("complete"));

@@ -4,7 +4,7 @@ import TaskRunner from "../../TaskRunner/TaskRunner";
 export default () => {
     const TR = new TaskRunner();
 
-    const AI = new A("AA", {info: "this is param"});
+    const AI = new A("AA", {info: "this is param"}, true);
     const BI = new B("BB");
     const CI = new C("CC");
     const DI = new D("DD");
@@ -24,5 +24,7 @@ export default () => {
     TR.concurrent(HI, JI);
     TR.sequential(TR.compose(AI, BI, CI, DI), EI, TR.compose(HI, OI, JI, LI, MI));
 
-    TR.run();
+    TR.run().then((result) => {
+        console.log("Demo2 final!" + result);
+    });
 };
