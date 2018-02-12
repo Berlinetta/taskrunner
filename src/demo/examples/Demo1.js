@@ -13,7 +13,7 @@ export default () => {
     TR.register(AI, BI, CI, DI, EI);
     TR.concurrent(AI, BI, CI);
     TR.sequential(AI, DI);
-    TR.sequential(TR.compose(AI, BI, CI, DI), EI);
+    TR.sequential(TR.composite(AI, BI, CI, DI), EI);
 
     TR.run().then((result) => {
         console.log("Demo1 final!" + result);

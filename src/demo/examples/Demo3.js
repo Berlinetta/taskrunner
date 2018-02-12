@@ -22,7 +22,7 @@ export default () => {
     TR.sequential(LI, MI);
     TR.sequential(BI, DI);
     TR.concurrent(DI, EI, HI);
-    TR.sequential(TR.compose(CI, EI, HI), OI);
+    TR.sequential(TR.composite(CI, EI, HI), OI);
     TR.run().then((result) => {
         console.log("Demo3 final!" + result);
     });

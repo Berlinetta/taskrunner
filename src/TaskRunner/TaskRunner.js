@@ -1,7 +1,7 @@
 import StateTree from "./common/StateTree";
 import ConcurrentTask from "./tasks/ConcurrentTask";
 import SequentialTask from "./tasks/SequentialTask";
-import ComposeTask from "./tasks/ComposeTask";
+import CompositeTask from "./tasks/CompositeTask";
 import NormalTask from "./tasks/NormalTask";
 import TS from "./services/TreeService";
 import TES from "./services/TaskExecutionService";
@@ -34,8 +34,8 @@ class TaskRunner {
         instance.initialize(newTasks);
     }
 
-    compose(...newTasks) {
-        const instance = new ComposeTask();
+    composite(...newTasks) {
+        const instance = new CompositeTask();
         instance.initialize(newTasks);
         return instance;
     }

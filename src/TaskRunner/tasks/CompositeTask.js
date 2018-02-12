@@ -5,7 +5,7 @@ import InternalTaskBase from "./common/InternalTaskBase";
 import TES from "../services/TaskExecutionService";
 import TS from "../services/TreeService";
 
-class ComposeTask extends InternalTaskBase {
+class CompositeTask extends InternalTaskBase {
     constructor() {
         super(_.uniqueId("compose_task_"), TaskTypes.Composed);
     }
@@ -31,4 +31,4 @@ class ComposeTask extends InternalTaskBase {
     }
 }
 
-export default ComposeTask;
+export default CompositeTask;
