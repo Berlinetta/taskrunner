@@ -66,7 +66,7 @@ class TaskExecutionService {
         return _.filter(TS.getNormalTasks(), (t) => t.isInitialTask).map((t) => t.id);
     }
 
-    getInitialTaskIdsForComposedTask(taskId) {
+    getInitialTaskIdsForCompositeTask(taskId) {
         const innerTasks = TS.getTaskPropertyCursor(taskId, "innerTasks").get();
         const filteredTasks = _.filter(innerTasks, (task) => {
             const taskCursor = TS.getTaskCursorById(task.id);
@@ -78,19 +78,19 @@ class TaskExecutionService {
 
     updateGlobalDependencies() {
         const builtinTasks = TS.getBuiltinTasks();
-        const composedTasks = _.filter(builtinTasks, (t) => t.taskType === TaskTypes.Composed);
+        const compositeTasks = _.filter(builtinTasks, (t) => t.taskType === TaskTypes.Composite);
         builtinTasks.forEach((builtinTask) => {
             const innerTaskIds = builtinTask.innerTasks.map((t) => t.id);
-            composedTasks.forEach((composedTask) => {
-                if (builtinTask.id !== composedTask.id) {
-                    const composedTaskInnerTaskIds = composedTask.innerTasks.map((t) => t.id);
+            compositeTasks.forEach((compositeTask) => {
+                if (builtinTask.id !== compositeTask.id) {
+                    const compositeTaskInnerTaskIds = compositeTask.innerTasks.map((t) => t.id);
                     let needToUpdate = true;
                     innerTaskIds.forEach((innerId) => {
-                        needToUpdate = needToUpdate && _.includes(composedTaskInnerTaskIds, innerId);
+                        needToUpdate = needToUpdate && _.includes(compositeTaskInnerTaskIds, innerId);
                     });
                     if (needToUpdate) {
-                        builtinTask.parentComposedTaskId = composedTask.id;
-                        composedTask.innerTasks.push(builtinTask);
+                        builtinTask.parentcompositeTaskId = compositeTask.id;
+                        compositeTask.innerTasks.push(builtinTask);
                     }
                 }
             });

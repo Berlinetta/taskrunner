@@ -7,13 +7,13 @@ import TS from "../services/TreeService";
 
 class CompositeTask extends InternalTaskBase {
     constructor() {
-        super(_.uniqueId("compose_task_"), TaskTypes.Composed);
+        super(_.uniqueId("composite_task_"), TaskTypes.Composite);
     }
 
     _setHooks(internalTaskIds) {
         internalTaskIds.forEach((taskId) => {
             this.assertTaskExists(taskId);
-            TS.getTaskCursorById(taskId).select("parentComposedTaskId").set(this.id);
+            TS.getTaskCursorById(taskId).select("parentCompositeTaskId").set(this.id);
         });
     }
 
@@ -24,7 +24,7 @@ class CompositeTask extends InternalTaskBase {
     }
 
     execute() {
-        const initTaskIds = TES.getInitialTaskIdsForComposedTask(this.id);
+        const initTaskIds = TES.getInitialTaskIdsForCompositeTask(this.id);
         TES.runTasks(initTaskIds);
         TS.setTaskStart(this.id);
         return Promise.resolve();

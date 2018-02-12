@@ -27,11 +27,13 @@ class TaskRunner {
     concurrent(...newTasks) {
         const instance = new ConcurrentTask();
         instance.initialize(newTasks);
+        return instance;
     }
 
     sequential(...newTasks) {
         const instance = new SequentialTask();
         instance.initialize(newTasks);
+        return instance;
     }
 
     composite(...newTasks) {

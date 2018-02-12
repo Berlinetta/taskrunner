@@ -11,7 +11,7 @@ class TaskStatus {
         this.promise = null;
         this.previousSequentialTaskId = null;
         this.parentSequentialTaskId = null;
-        this.parentComposedTaskId = null;
+        this.parentCompositeTaskId = null;
         this.parentConcurrentTaskId = null;
         this.result = null;
         this.complete = false;
