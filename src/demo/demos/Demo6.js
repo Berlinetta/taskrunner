@@ -15,7 +15,6 @@ export default () => {
     const LI = new L("LL");
     const MI = new M("MM");
 
-    TR.register(AI, BI, CI, DI, EI, HI, OI, JI, LI, MI);
     const comTask = TR.composite(MI, LI, AI, OI, JI, DI, BI, CI, HI, EI);
 
     TR.run(comTask.id).then((result) => {

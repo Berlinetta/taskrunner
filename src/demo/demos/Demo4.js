@@ -15,7 +15,6 @@ export default () => {
     const LI = new L("LL");
     const MI = new M("MM");
 
-    TR.register(AI, BI, CI, DI, EI, HI, OI, JI, LI, MI);
     const seqTask = TR.sequential(HI, OI, JI, LI, MI, AI, BI, CI, DI, EI);
 
     TR.run(seqTask.id).then((result) => {

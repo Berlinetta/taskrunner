@@ -1,5 +1,6 @@
 import _ from "lodash";
 import Promise from "bluebird";
+import NormalTask from "../tasks/NormalTask";
 import {TaskTypes} from "../common/Constants";
 import TS from "./TreeService";
 
@@ -118,6 +119,15 @@ class TaskExecutionService {
                 }
                 this._runExecute(id);
             });
+        });
+    }
+
+    registerNormalTasks(newTasks) {
+        newTasks.forEach((task) => {
+            if (_.isEmpty(TS.getTaskById(task.id))) {
+                const instance = new NormalTask();
+                instance.initialize(task);
+            }
         });
     }
 }

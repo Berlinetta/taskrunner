@@ -10,7 +10,6 @@ export default () => {
     const DI = new D("DD");
     const EI = new E("EE");
 
-    TR.register(AI, BI, CI, DI, EI);
     const conTask = TR.concurrent(AI, BI, CI);
     TR.sequential(AI, DI);
     TR.sequential(TR.composite(AI, BI, CI, DI), EI);

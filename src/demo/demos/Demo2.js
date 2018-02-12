@@ -15,7 +15,6 @@ export default () => {
     const LI = new L("LL");
     const MI = new M("MM");
 
-    TR.register(AI, BI, CI, DI, EI, HI, OI, JI, LI, MI);
     const conTask = TR.concurrent(AI, BI, CI);
     TR.sequential(AI, DI);
 
