@@ -4,7 +4,7 @@ import TaskRunner from "../../TaskRunner/TaskRunner";
 export default () => {
     const TR = new TaskRunner();
 
-    const AI = new A("AA", {info: "this is param"}, true);
+    const AI = new A("AA", {info: "this is param"});
     const BI = new B("BB");
     const CI = new C("CC");
     const DI = new D("DD");
@@ -16,15 +16,14 @@ export default () => {
     const MI = new M("MM");
 
     TR.register(AI, BI, CI, DI, EI, HI, OI, JI, LI, MI);
-    TR.concurrent(AI, BI, CI);
-    TR.sequential(AI, DI);
-
-    TR.sequential(HI, OI);
-    TR.sequential(JI, LI, MI);
-    TR.concurrent(HI, JI);
-    TR.sequential(TR.composite(AI, BI, CI, DI), EI, TR.composite(HI, OI, JI, LI, MI));
-
-    TR.run().then((result) => {
-        console.log("Demo2 final!" + result);
+    const conTask = TR.concurrent(AI, BI, CI);
+    TR.sequential(AI, JI);
+    TR.concurrent(JI, LI);
+    TR.sequential(LI, MI);
+    TR.sequential(BI, DI);
+    TR.concurrent(DI, EI, HI);
+    TR.sequential(TR.composite(CI, EI, HI), OI);
+    TR.run(conTask.id).then((result) => {
+        console.log("Demo3 final!" + result);
     });
 };

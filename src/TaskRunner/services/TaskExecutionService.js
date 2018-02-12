@@ -62,10 +62,6 @@ class TaskExecutionService {
         });
     }
 
-    getInitialTaskIds() {
-        return _.filter(TS.getNormalTasks(), (t) => t.isInitialTask).map((t) => t.id);
-    }
-
     getInitialTaskIdsForCompositeTask(taskId) {
         const innerTasks = TS.getTaskPropertyCursor(taskId, "innerTasks").get();
         const filteredTasks = _.filter(innerTasks, (task) => {

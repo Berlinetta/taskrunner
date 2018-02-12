@@ -1,9 +1,9 @@
-import demo1 from "./examples/Demo1";
-import demo2 from "./examples/Demo2";
-import demo3 from "./examples/Demo3";
-import demo4 from "./examples/Demo4";
-import demo5 from "./examples/Demo5";
-import demo6 from "./examples/Demo6";
+import demo1 from "./demos/Demo1";
+import demo2 from "./demos/Demo2";
+import demo3 from "./demos/Demo3";
+import demo4 from "./demos/Demo4";
+import demo5 from "./demos/Demo5";
+import demo6 from "./demos/Demo6";
 
 const demo = {
     demo1,

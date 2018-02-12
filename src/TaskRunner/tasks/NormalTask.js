@@ -38,15 +38,15 @@ class NormalTask extends BaseTask {
     }
 
     initialize(userTask) {
-        const {id, param, isInitialTask, handlers, execute} = userTask;
-        _.assign(this, {id, param, isInitialTask, handlers});
+        const {id, param, handlers, execute} = userTask;
+        _.assign(this, {id, param, handlers});
         this.userTaskExec = execute.bind(userTask);
         handlers.forEach((obj) => {
             if (_.isFunction(obj.handler)) {
                 obj.handler = obj.handler.bind(userTask);
             }
         });
-        const status = new TaskStatus(id, param, TaskTypes.Normal, [], handlers, this.execute, this, isInitialTask);
+        const status = new TaskStatus(id, param, TaskTypes.Normal, [], handlers, this.execute, this);
         TS.getTaskCursorById(id).set(status);
         this._registerUserTaskEvents();
     }

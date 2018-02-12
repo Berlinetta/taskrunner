@@ -7,7 +7,7 @@ export default () => {
     const AI = new A("AA", {info: "this is param"});
     const BI = new B("BB");
     const CI = new C("CC");
-    const DI = new D("DD", null, true);
+    const DI = new D("DD");
     const EI = new E("EE");
     const HI = new H("HH");
     const OI = new O("OO");
@@ -16,9 +16,9 @@ export default () => {
     const MI = new M("MM");
 
     TR.register(AI, BI, CI, DI, EI, HI, OI, JI, LI, MI);
-    TR.sequential(HI, OI, JI, LI, MI, AI, BI, CI, DI, EI);
+    const seqTask = TR.sequential(HI, OI, JI, LI, MI, AI, BI, CI, DI, EI);
 
-    TR.run().then((result) => {
+    TR.run(seqTask.id).then((result) => {
         console.log("Demo4 final!" + result);
     });
 };

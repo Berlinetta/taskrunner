@@ -42,11 +42,10 @@ class TaskRunner {
         return instance;
     }
 
-    run() {
+    run(...initialTaskIds) {
         TES.updateGlobalDependencies();
         TES.registerStart();
-        const initTaskIds = TES.getInitialTaskIds();
-        TES.runTasks(initTaskIds);
+        TES.runTasks(initialTaskIds);
         return TES.getTaskRunnerPromise();
     }
 }

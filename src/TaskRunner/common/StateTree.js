@@ -31,13 +31,13 @@ class EventArgs {
 class Assert {
     static isString(str) {
         if (!_.isString(str)) {
-            throw new Error(`Error: ${str} is not a string.`);
+            throw new TypeError(`Error: ${str} is not a string.`);
         }
     }
 
     static isFunction(func) {
         if (!_.isFunction(func)) {
-            throw new Error(`Error: ${func} is not a function.`);
+            throw new TypeError(`Error: ${func} is not a function.`);
         }
     }
 }

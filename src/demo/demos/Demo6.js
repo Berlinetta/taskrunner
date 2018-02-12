@@ -5,7 +5,7 @@ export default () => {
     const TR = new TaskRunner();
 
     const AI = new A("AA", {info: "this is param"});
-    const BI = new B("BB", null, true);
+    const BI = new B("BB");
     const CI = new C("CC");
     const DI = new D("DD");
     const EI = new E("EE");
@@ -16,9 +16,9 @@ export default () => {
     const MI = new M("MM");
 
     TR.register(AI, BI, CI, DI, EI, HI, OI, JI, LI, MI);
-    TR.concurrent(LI, MI, AI, BI, CI, HI, OI, JI, DI, EI);
+    const comTask = TR.composite(MI, LI, AI, OI, JI, DI, BI, CI, HI, EI);
 
-    TR.run().then((result) => {
-        console.log("Demo5 final!" + result);
+    TR.run(comTask.id).then((result) => {
+        console.log("Demo6 final!" + result);
     });
 };

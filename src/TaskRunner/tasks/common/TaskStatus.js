@@ -1,5 +1,5 @@
 class TaskStatus {
-    constructor(id, param, taskType, innerTasks, eventHandlers, execute, instance, isInitialTask = false) {
+    constructor(id, param, taskType, innerTasks, eventHandlers, execute, instance) {
         this.id = id;
         this.param = param;
         this.taskType = taskType;
@@ -7,7 +7,6 @@ class TaskStatus {
         this.eventHandlers = eventHandlers;
         this.execute = execute;
         this.instance = instance;
-        this.isInitialTask = isInitialTask;
         this.promise = null;
         this.previousSequentialTaskId = null;
         this.parentSequentialTaskId = null;
